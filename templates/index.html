@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加密貨幣分析儀表板</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+        }
+        .indicator-card {
+            background-color: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+        .indicator-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+        }
+        .trade-advice {
+            border-left: 4px solid #007bff;
+            background: linear-gradient(to right, rgba(0,123,255,0.05), white);
+        }
+        .value-up {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .value-down {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .value-neutral {
+            color: #6c757d;
+        }
+        .symbol-selector {
+            margin-bottom: 25px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .symbol-btn {
+            margin-right: 10px;
+            margin-bottom: 10px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        .symbol-btn.active {
+            background-color: #0d6efd;
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(13,110,253,0.3);
+        }
+        .signal-strength {
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .signal-strength-bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        .signal-buy {
+            background-color: #28a745;
+        }
+        .signal-sell {
+            background-color: #dc3545;
+        }
+        .trend-indicator {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+            min-width: 80px;
+            text-align: center;
+        }
+        .trend-up {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+        }
+        .trend-down {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+        .trend-neutral {
+            background-color: rgba(108, 117, 125, 0.1);
+            color: #6c757d;
+        }
+        .price-change {
+            font-size: 0.9em;
+            margin-left: 8px;
+        }
+        .risk-settings {
+            background-color: rgba(0,123,255,0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        .form-range {
+            height: 1.5rem;
+        }
+        .form-range::-webkit-slider-thumb {
+            background: #0d6efd;
+        }
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+        }
+        .card-title {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .data-label {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        .data-value {
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+        .refresh-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin-left: 10px;
+            transition: all 0.3s ease;
+        }
+        .refresh-btn:hover {
+            transform: rotate(180deg);
+        }
+        .signal-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        .signal-positive {
+            background-color: #28a745;
+        }
+        .signal-negative {
+            background-color: #dc3545;
+        }
+        .signal-neutral {
+            background-color: #6c757d;
+        }
+        .signal-details {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .signal-details h4 {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .signal-row {
+            display: flex;
+            justify-content: space-around;
+            gap: 20px;
+        }
+        
+        .signal-col {
+            flex: 1;
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .signal-col h5 {
+            color: #444;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .signal-col ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .signal-col li {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .signal-col li:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">加密貨幣技術分析</h1>
+            <button class="btn btn-outline-primary refresh-btn" onclick="updateData()">
+                <i class="bi bi-arrow-clockwise"></i>
+            </button>
+        </div>
+        
+        <!-- 交易對選擇器 -->
+        <div class="symbol-selector text-center">
+            {% for symbol, name in symbols.items() %}
+            <button class="btn btn-outline-primary symbol-btn" data-symbol="{{ symbol }}">
+                {{ name }} ({{ symbol }})
+            </button>
+            {% endfor %}
+        </div>
+
+        <!-- 載入指示器 -->
+        <div id="loading" class="text-center d-none">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">載入中...</span>
+            </div>
+        </div>
+
+        <!-- 錯誤提示 -->
+        <div id="error-message" class="alert alert-danger d-none" role="alert"></div>
+
+        <!-- 主要數據顯示區域 -->
+        <div class="row">
+            <!-- 價格資訊 -->
+            <div class="col-md-6">
+                <div class="indicator-card">
+                    <h3 class="card-title">價格資訊 <small class="text-muted" id="selected-symbol"></small></h3>
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <h4>
+                                <span id="current-price">--</span> USDT
+                                <span id="price-change" class="price-change"></span>
+                            </h4>
+                        </div>
+                        <div class="col-6">
+                            <div class="data-label">MA20</div>
+                            <div class="data-value" id="ma20">--</div>
+                            <div class="data-label mt-3">MA50</div>
+                            <div class="data-value" id="ma50">--</div>
+                            <div class="data-label mt-3">RSI</div>
+                            <div class="data-value" id="rsi">--</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="data-label">布林上軌</div>
+                            <div class="data-value" id="bb-upper">--</div>
+                            <div class="data-label mt-3">布林下軌</div>
+                            <div class="data-value" id="bb-lower">--</div>
+                            <div class="data-label mt-3">更新時間</div>
+                            <div class="data-value text-muted" id="last-updated">--</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 技術指標 -->
+            <div class="col-md-6">
+                <div class="indicator-card">
+                    <h3 class="card-title">技術指標</h3>
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <p>趨勢: <span id="trend" class="trend-indicator">--</span></p>
+                            <div class="signal-strength">
+                                <div id="trend-strength" class="signal-strength-bar"></div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="data-label">RSI信號</div>
+                            <div class="data-value" id="rsi-signal">--</div>
+                            <div class="data-label mt-3">MACD信號</div>
+                            <div class="data-value" id="macd-signal">--</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="data-label">KD信號</div>
+                            <div class="data-value" id="kd-signal">--</div>
+                            <div class="data-label mt-3">成交量</div>
+                            <div class="data-value" id="volume-signal">--</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 交易建議 -->
+            <div class="col-12">
+                <div class="indicator-card trade-advice">
+                    <h3 class="card-title">交易建議</h3>
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <h4>交易方向: <span id="trade-direction" class="trend-indicator">--</span></h4>
+                            <div id="signal-strength"></div>
+                            <div class="signal-strength mt-2">
+                                <div id="buy-strength" class="signal-strength-bar signal-buy" style="width: 0%"></div>
+                            </div>
+                            <div class="signal-strength mt-1">
+                                <div id="sell-strength" class="signal-strength-bar signal-sell" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- 風險設置 -->
+                        <div class="col-12">
+                            <div class="risk-settings">
+                                <h5>風險設置</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="stopLossPercent" class="form-label">止損百分比</label>
+                                            <div class="d-flex align-items-center">
+                                                <input type="range" class="form-range" id="stopLossPercent" 
+                                                       min="0.5" max="5" step="0.5" value="2">
+                                                <span class="ms-2" id="stopLossValue">2%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="takeProfitPercent" class="form-label">止盈百分比</label>
+                                            <div class="d-flex align-items-center">
+                                                <input type="range" class="form-range" id="takeProfitPercent" 
+                                                       min="1" max="15" step="0.5" value="6">
+                                                <span class="ms-2" id="takeProfitValue">6%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mt-3">
+                            <div class="data-label">建議進場價</div>
+                            <div class="data-value" id="entry-price">--</div>
+                            <div class="data-label mt-3">止損價位</div>
+                            <div class="data-value" id="stop-loss">--</div>
+                        </div>
+                        <div class="col-md-6 mt-3">
+                            <div class="data-label">止盈價位</div>
+                            <div class="data-value" id="take-profit">--</div>
+                            <div class="data-label mt-3">風險收益比</div>
+                            <div class="data-value" id="risk-reward-ratio">--</div>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <p class="text-muted">* 建議僅供參考，請根據自身風險承受能力做出判斷</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <!-- 技術指標圖表 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">技術指標圖表</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="technicalChart" style="width: 100%; height: 400px;"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <!-- 信號閾值調整面板 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">信號閾值設定</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="signalThreshold" class="form-label">信號閾值 (目前: 3)</label>
+                            <input type="range" class="form-range" id="signalThreshold" min="2" max="5" step="0.5" value="3">
+                            <small class="text-muted">調整產生交易信號所需的最小分數</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="signalRatio" class="form-label">信號比例 (目前: 1.2)</label>
+                            <input type="range" class="form-range" id="signalRatio" min="1.1" max="2.0" step="0.1" value="1.2">
+                            <small class="text-muted">調整買賣信號的比例閾值</small>
+                        </div>
+                        <button class="btn btn-primary" onclick="updateThresholds()">更新閾值</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        let currentSymbol = 'BTC/USDT';
+        let updateInterval;
+        let lastPrice = null;
+        let currentPrice = null;
+        let technicalChart;
+
+        // 初始化風險設置
+        document.getElementById('stopLossPercent').addEventListener('input', function() {
+            document.getElementById('stopLossValue').textContent = this.value + '%';
+            updatePriceLevels();
+        });
+
+        document.getElementById('takeProfitPercent').addEventListener('input', function() {
+            document.getElementById('takeProfitValue').textContent = this.value + '%';
+            updatePriceLevels();
+        });
+
+        function updatePriceLevels() {
+            if (!currentPrice) return;
+
+            const stopLossPercent = parseFloat(document.getElementById('stopLossPercent').value) / 100;
+            const takeProfitPercent = parseFloat(document.getElementById('takeProfitPercent').value) / 100;
+            const tradeDirection = document.getElementById('trade-direction').textContent;
+
+            let entryPrice = currentPrice;
+            let stopLoss, takeProfit, riskRewardRatio;
+
+            if (tradeDirection === '做多') {
+                stopLoss = entryPrice * (1 - stopLossPercent);
+                takeProfit = entryPrice * (1 + takeProfitPercent);
+            } else if (tradeDirection === '做空') {
+                stopLoss = entryPrice * (1 + stopLossPercent);
+                takeProfit = entryPrice * (1 - takeProfitPercent);
+            }
+
+            if (stopLoss && takeProfit) {
+                const risk = Math.abs(entryPrice - stopLoss);
+                const reward = Math.abs(entryPrice - takeProfit);
+                riskRewardRatio = (reward / risk).toFixed(2);
+
+                document.getElementById('entry-price').textContent = entryPrice.toFixed(2);
+                document.getElementById('stop-loss').textContent = stopLoss.toFixed(2);
+                document.getElementById('take-profit').textContent = takeProfit.toFixed(2);
+                document.getElementById('risk-reward-ratio').textContent = riskRewardRatio;
+            }
+        }
+
+        function updateTrendIndicator(element, value) {
+            element.className = 'trend-indicator';
+            if (value.includes('上漲') || value.includes('做多')) {
+                element.classList.add('trend-up');
+            } else if (value.includes('下跌') || value.includes('做空')) {
+                element.classList.add('trend-down');
+            } else {
+                element.classList.add('trend-neutral');
+            }
+        }
+
+        function updateSignalStrength(data) {
+            const signalStrengthDiv = document.getElementById('signal-strength');
+            if (!signalStrengthDiv) {
+                console.error('找不到 signal-strength 元素');
+                return;
+            }
+
+            if (!data || !data.signals) {
+                console.error('無效的數據格式:', data);
+                signalStrengthDiv.innerHTML = '<div class="alert alert-warning">無法載入信號強度數據</div>';
+                return;
+            }
+
+            const signals = data.signals;
+            if (!signals.signal_strength || !signals.threshold_info) {
+                console.error('缺少信號強度或閾值信息:', signals);
+                signalStrengthDiv.innerHTML = '<div class="alert alert-warning">無法載入完整的信號數據</div>';
+                return;
+            }
+
+            const signalStrength = signals.signal_strength;
+            const thresholdInfo = signals.threshold_info;
+
+            try {
+                let html = `
+                    <div class="signal-details">
+                        <h4>信號強度分析 (閾值: ${thresholdInfo.signal_threshold}, 比率: ${thresholdInfo.signal_ratio})</h4>
+                        <div class="signal-row">
+                            <div class="signal-col">
+                                <h5>買入信號 (總分: ${signalStrength.buy.total.toFixed(1)})</h5>
+                                <ul>
+                                    ${Object.entries(signalStrength.buy.details).map(([key, value]) => 
+                                        `<li>${key}: +${Number(value).toFixed(1)}</li>`
+                                    ).join('')}
+                                </ul>
+                            </div>
+                            <div class="signal-col">
+                                <h5>賣出信號 (總分: ${signalStrength.sell.total.toFixed(1)})</h5>
+                                <ul>
+                                    ${Object.entries(signalStrength.sell.details).map(([key, value]) => 
+                                        `<li>${key}: +${Number(value).toFixed(1)}</li>`
+                                    ).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                signalStrengthDiv.innerHTML = html;
+
+                // 更新進度條
+                const maxSignals = 7; // 最大可能的信號總和
+                const buyStrength = (signalStrength.buy.total / maxSignals) * 100;
+                const sellStrength = (signalStrength.sell.total / maxSignals) * 100;
+
+                const buyBar = document.getElementById('buy-strength');
+                const sellBar = document.getElementById('sell-strength');
+
+                if (buyBar && sellBar) {
+                    if (signals.trade_direction === '觀望') {
+                        buyBar.style.width = '50%';
+                        sellBar.style.width = '50%';
+                        buyBar.style.backgroundColor = '#6c757d';
+                        sellBar.style.backgroundColor = '#6c757d';
+                    } else {
+                        buyBar.style.width = `${buyStrength}%`;
+                        sellBar.style.width = `${sellStrength}%`;
+                        buyBar.style.backgroundColor = '';
+                        sellBar.style.backgroundColor = '';
+                    }
+                }
+
+                // 更新閾值顯示
+                const thresholdLabel = document.querySelector('label[for="signalThreshold"]');
+                const ratioLabel = document.querySelector('label[for="signalRatio"]');
+                if (thresholdLabel && ratioLabel) {
+                    thresholdLabel.textContent = `信號閾值 (目前: ${thresholdInfo.signal_threshold})`;
+                    ratioLabel.textContent = `信號比例 (目前: ${thresholdInfo.signal_ratio})`;
+                }
+            } catch (error) {
+                console.error('更新信號強度顯示時發生錯誤:', error);
+                signalStrengthDiv.innerHTML = '<div class="alert alert-danger">更新信號強度顯示時發生錯誤</div>';
+            }
+        }
+
+        function initializeChart() {
+            const ctx = document.getElementById('technicalChart').getContext('2d');
+            technicalChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'RSI',
+                            data: [],
+                            borderColor: 'purple',
+                            borderWidth: 1.5,
+                            yAxisID: 'rsi',
+                            fill: false,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'MACD',
+                            data: [],
+                            borderColor: 'blue',
+                            borderWidth: 1.5,
+                            yAxisID: 'macd',
+                            fill: false,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Signal',
+                            data: [],
+                            borderColor: 'red',
+                            borderWidth: 1.5,
+                            yAxisID: 'macd',
+                            fill: false,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'K值',
+                            data: [],
+                            borderColor: 'green',
+                            borderWidth: 1.5,
+                            yAxisID: 'kd',
+                            fill: false,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'D值',
+                            data: [],
+                            borderColor: 'orange',
+                            borderWidth: 1.5,
+                            yAxisID: 'kd',
+                            fill: false,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 12
+                                },
+                                padding: 10
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    let value = context.raw;
+                                    if (typeof value !== 'number') {
+                                        value = parseFloat(value) || 0;
+                                    }
+                                    const label = context.dataset.label;
+                                    const formattedValue = value.toFixed(2);
+                                    return `${label}: ${formattedValue}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                                autoSkip: true,
+                                maxTicksLimit: 12  // 限制X軸顯示的刻度數量
+                            },
+                            grid: {
+                                display: true,
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        },
+                        rsi: {
+                            type: 'linear',
+                            position: 'right',
+                            min: 0,
+                            max: 100,
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                            title: {
+                                display: true,
+                                text: 'RSI'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    if (typeof value !== 'number') {
+                                        value = parseFloat(value) || 0;
+                                    }
+                                    return Math.round(value);
+                                }
+                            }
+                        },
+                        macd: {
+                            type: 'linear',
+                            position: 'left',
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                            title: {
+                                display: true,
+                                text: 'MACD'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    if (typeof value !== 'number') {
+                                        value = parseFloat(value) || 0;
+                                    }
+                                    return value.toFixed(2);
+                                }
+                            }
+                        },
+                        kd: {
+                            type: 'linear',
+                            position: 'right',
+                            min: 0,
+                            max: 100,
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                            title: {
+                                display: true,
+                                text: 'KD'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    if (typeof value !== 'number') {
+                                        value = parseFloat(value) || 0;
+                                    }
+                                    return Math.round(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateThresholds() {
+            const threshold = document.getElementById('signalThreshold').value;
+            const ratio = document.getElementById('signalRatio').value;
+            
+            // 發送到後端更新閾值
+            fetch('/update_thresholds', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    signal_threshold: parseFloat(threshold),
+                    signal_ratio: parseFloat(ratio)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('閾值更新成功！');
+                    updateData();  // 重新獲取數據
+                } else {
+                    alert('閾值更新失敗：' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('更新閾值時發生錯誤:', error);
+                alert('更新閾值失敗，請檢查網路連接');
+            });
+        }
+
+        async function updateData(retryCount = 3) {
+            try {
+                document.getElementById('loading').classList.remove('d-none');
+                document.getElementById('error-message').classList.add('d-none');
+                
+                const response = await fetch(`/analyze?symbol=${encodeURIComponent(currentSymbol)}`);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || '數據獲取失敗');
+                }
+
+                // 更新價格資訊
+                document.getElementById('selected-symbol').textContent = `(${currentSymbol})`;
+                const currentPriceElement = document.getElementById('current-price');
+                currentPrice = data.price;
+                currentPriceElement.textContent = currentPrice.toFixed(2);
+
+                // 更新價格變化
+                if (lastPrice !== null) {
+                    const priceChange = ((currentPrice - lastPrice) / lastPrice) * 100;
+                    const priceChangeElement = document.getElementById('price-change');
+                    priceChangeElement.textContent = `${priceChange >= 0 ? '↑' : '↓'} ${Math.abs(priceChange).toFixed(2)}%`;
+                    priceChangeElement.className = `price-change ${priceChange >= 0 ? 'value-up' : 'value-down'}`;
+                }
+                lastPrice = currentPrice;
+
+                // 更新技術指標
+                document.getElementById('ma20').textContent = data.ma20.toFixed(2);
+                document.getElementById('ma50').textContent = data.ma50.toFixed(2);
+                document.getElementById('bb-upper').textContent = data.bb_upper.toFixed(2);
+                document.getElementById('bb-lower').textContent = data.bb_lower.toFixed(2);
+                document.getElementById('rsi').textContent = data.rsi.toFixed(2);
+
+                // 更新趨勢和信號
+                const trendElement = document.getElementById('trend');
+                trendElement.textContent = data.signals.trend;
+                updateTrendIndicator(trendElement, data.signals.trend);
+
+                document.getElementById('rsi-signal').textContent = data.signals.rsi_signal;
+                document.getElementById('macd-signal').textContent = data.signals.macd_signal;
+                document.getElementById('kd-signal').textContent = data.signals.kd_signal;
+                document.getElementById('volume-signal').textContent = data.signals.volume_signal;
+
+                // 格式化時間顯示
+                const updateTime = new Date(data.timestamp);
+                // 轉換為台灣時間（UTC+8）
+                const twTime = new Date(updateTime.getTime() + (8 * 60 * 60 * 1000));
+                const formattedTime = `更新時間：${twTime.getFullYear()}/${String(twTime.getMonth() + 1).padStart(2, '0')}/${String(twTime.getDate()).padStart(2, '0')} ${twTime.getHours() < 12 ? '上午' : '下午'} ${String(twTime.getHours() % 12 || 12).padStart(2, '0')}:${String(twTime.getMinutes()).padStart(2, '0')}:${String(twTime.getSeconds()).padStart(2, '0')}`;
+                document.getElementById('last-updated').textContent = formattedTime;
+
+                // 更新交易建議
+                const directionElement = document.getElementById('trade-direction');
+                directionElement.textContent = data.signals.trade_direction;
+                updateTrendIndicator(directionElement, data.signals.trade_direction);
+
+                // 更新信號強度指示器
+                updateSignalStrength(data);
+
+                // 更新價格水平
+                updatePriceLevels();
+
+                // 更新圖表數據
+                if (technicalChart) {
+                    try {
+                        // 格式化時間戳記
+                        const formattedLabels = data.timestamps.map(timestamp => {
+                            const date = new Date(timestamp);
+                            // 轉換為台灣時間
+                            const twTime = new Date(date.getTime() + (8 * 60 * 60 * 1000));
+                            const month = twTime.getMonth() + 1;
+                            const day = twTime.getDate();
+                            const hour = String(twTime.getHours()).padStart(2, '0');
+                            return `${month}/${day} ${hour}:00`;
+                        });
+
+                        // 檢查並處理數據
+                        const validateData = (data, key) => {
+                            if (!data || !data[key] || !Array.isArray(data[key])) {
+                                console.error(`Invalid ${key} data:`, data[key]);
+                                return new Array(formattedLabels.length).fill(0);
+                            }
+                            return data[key].map(value => {
+                                const num = Number(value);
+                                return isNaN(num) ? 0 : num;
+                            });
+                        };
+
+                        // 更新圖表數據 - 使用新的歷史數據鍵名
+                        technicalChart.data.labels = formattedLabels;
+                        technicalChart.data.datasets[0].data = validateData(data, 'rsi_history');
+                        technicalChart.data.datasets[1].data = validateData(data, 'macd_history');
+                        technicalChart.data.datasets[2].data = validateData(data, 'signal_history');
+                        technicalChart.data.datasets[3].data = validateData(data, 'k_history');
+                        technicalChart.data.datasets[4].data = validateData(data, 'd_history');
+
+                        // 更新圖表
+                        technicalChart.update('none'); // 使用 'none' 模式來提高性能
+
+                    } catch (error) {
+                        console.error('圖表更新錯誤:', error);
+                        console.log('接收到的數據:', data);
+                    }
+                }
+
+            } catch (error) {
+                console.error('更新數據時發生錯誤:', error);
+                document.getElementById('error-message').textContent = error.message;
+                document.getElementById('error-message').classList.remove('d-none');
+                
+                if (retryCount > 0) {
+                    setTimeout(() => {
+                        console.log(`重試更新數據，剩餘重試次數: ${retryCount - 1}`);
+                        updateData(retryCount - 1);
+                    }, 3000);
+                }
+            } finally {
+                document.getElementById('loading').classList.add('d-none');
+            }
+        }
+
+        // 初始化頁面
+        document.addEventListener('DOMContentLoaded', function() {
+            // 設置交易對選擇器的點擊事件
+            document.querySelectorAll('.symbol-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    document.querySelectorAll('.symbol-btn').forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    currentSymbol = this.dataset.symbol;
+                    lastPrice = null;
+                    currentPrice = null;
+                    updateData();
+                });
+            });
+
+            document.querySelector(`[data-symbol="${currentSymbol}"]`).classList.add('active');
+            initializeChart();
+            updateData();
+            updateInterval = setInterval(() => updateData(), 30000);
+        });
+
+        window.addEventListener('beforeunload', function() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+        });
+    </script>
+</body>
+</html> 
