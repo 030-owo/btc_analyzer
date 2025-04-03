@@ -40,7 +40,7 @@ class CryptoAnalyzer:
         """初始化交易所連接"""
         for attempt in range(self.retry_count):
             try:
-                exchange = ccxt.binance({
+                exchange = ccxt.okx({
                     'enableRateLimit': True,
                     'timeout': 30000,
                     'options': {
